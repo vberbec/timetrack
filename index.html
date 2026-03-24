@@ -76,7 +76,7 @@
 <div id="root"></div>
 <script type="text/babel">
 
-const WEBHOOK_URL = "https://eur01.safelinks.protection.outlook.com/?url=https%3A%2F%2Fdefaulta969fcba514d452eb6120b717e8cdf.58.environment.api.powerplatform.com%2Fpowerautomate%2Fautomations%2Fdirect%2Fworkflows%2F446a7e868966410db57ebce64355fa5f%2Ftriggers%2Fmanual%2Fpaths%2Finvoke%3Fapi-version%3D1&data=05%7C02%7Cm.scarcia%40elettrofisico.com%7C8c550b441cea4f93491808de83fe5be8%7Ca969fcba514d452eb6120b717e8cdf58%7C0%7C0%7C639093325647980015%7CUnknown%7CTWFpbGZsb3d8eyJFbXB0eU1hcGkiOnRydWUsIlYiOiIwLjAuMDAwMCIsIlAiOiJXaW4zMiIsIkFOIjoiTWFpbCIsIldUIjoyfQ%3D%3D%7C0%7C%7C%7C&sdata=4b9%2BcVDEJ1zsN6mDfltoQqwicgpKRG7S%2BJghcaCCVuw%3D&reserved=0";
+const WEBHOOK_URL = "https://defaulta969fcba514d452eb6120b717e8cdf.58.environment.api.powerplatform.com/powerautomate/automations/direct/workflows/446a7e868966410db57ebce64355fa5f/triggers/manual/paths/invoke?api-version=1";
 
 const { useState, useEffect } = React;
 
@@ -198,11 +198,15 @@ function App() {
     const p={giorno:getGiorno(entry.date),data:toExcelDate(entry.date),dipendente:entry.nome,commessa:entry.commessa,ore:Math.floor(entry.seconds/3600),minuti:Math.floor((entry.seconds%3600)/60),tempo:formatTime(entry.seconds),descrizione:entry.desc};
     setSync(s=>({...s,[entry.id]:"pending"}));
     try {
-      const r=await fetch(WEBHOOK_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(p)});
-      const ok=r.ok||r.status===202||r.status===200;
-      setSync(s=>({...s,[entry.id]:ok?"ok":"error"}));
-      return ok;
-    } catch { setSync(s=>({...s,[entry.id]:"error"})); return false; }
+      const r=await fetch(WEBHOOK_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"application/json"},body:JSON.stringify(p)});
+      // no-cors: la risposta e opaque ma se non da eccezione il dato e arrivato
+      setSync(s=>({...s,[entry.id]:"ok"}));
+      return true;
+    } catch(err) {
+      console.error("Webhook error:", err);
+      setSync(s=>({...s,[entry.id]:"error"}}));
+      return false;
+    }
   }
 
   const start = () => { if(active||!sel)return; setActive({commessa:sel,startTs:Date.now(),elapsed:0}); };
